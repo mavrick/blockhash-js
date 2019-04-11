@@ -236,7 +236,7 @@ var blockhash = function(src, bits, method, callback) {
         // destroy canvas element
         canvas = null;
 
-        callack(null, hash);
+        callback(null, hash);
 
     };
     img.src = src;

@@ -231,7 +231,7 @@ var blockhash = function(src, bits, method, callback) {
         ctx.drawImage(img, 0, 0);
 
         var imgData = ctx.getImageData(0, 0, img.width, img.height);
-        var hash = blockhash.blockhashData(imgData, 16, 2);
+        var hash = blockhashData(imgData, 16, 2);
 
         // destroy canvas element
         canvas = null;

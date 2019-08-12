@@ -4,13 +4,12 @@
 // Copyright 2014 Commons Machinery http://commonsmachinery.se/
 // Distributed under an MIT license, please see LICENSE in the top dir.
 
-// var PNG = require('png-js');
-// var jpeg = require('jpeg-js');
+const { createCanvas, loadImage } = require('canvas');
 
-var one_bits = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4];
+const one_bits = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4];
 
 /* Calculate the hamming distance for two hashes in hex format */
-var hammingDistance = function(hash1, hash2) {
+const hammingDistance = function(hash1, hash2) {
     var d = 0;
     var i;
     for (i = 0; i < hash1.length; i++) {
@@ -21,7 +20,7 @@ var hammingDistance = function(hash1, hash2) {
     return d;
 };
 
-var median = function(data) {
+const median = function(data) {
     var mdarr = data.slice(0);
     mdarr.sort(function(a, b) { return a-b; });
     if (mdarr.length % 2 === 0) {
@@ -30,7 +29,7 @@ var median = function(data) {
     return mdarr[Math.floor(mdarr.length/2)];
 };
 
-var bits_to_hexhash = function(bitsArray) {
+const bits_to_hexhash = function(bitsArray) {
     var hex = [];
     for (var i = 0; i < bitsArray.length; i += 4) {
         var nibble = bitsArray.slice(i, i + 4);
@@ -40,7 +39,7 @@ var bits_to_hexhash = function(bitsArray) {
     return hex.join('');
 };
 
-var bmvbhash_even = function(data, bits) {
+const bmvbhash_even = function(data, bits) {
     var blocksize_x = Math.floor(data.width / bits);
     var blocksize_y = Math.floor(data.height / bits);
 
@@ -88,7 +87,7 @@ var bmvbhash_even = function(data, bits) {
     return bits_to_hexhash(result);
 };
 
-var bmvbhash = function(data, bits) {
+const bmvbhash = function(data, bits) {
     var result = [];
 
     var i, j, x, y;
@@ -204,8 +203,8 @@ var bmvbhash = function(data, bits) {
     return bits_to_hexhash(result);
 };
 
-var blockhashData = function(imgData, bits, method) {
-    var hash;
+const blockhashData = function(imgData, bits, method) {
+    let hash;
 
     if (method === 1) {
         hash = bmvbhash_even(imgData, bits);
@@ -220,35 +219,22 @@ var blockhashData = function(imgData, bits, method) {
     return hash;
 };
 
-var blockhash = function(src, bits, method, callback) {
-    var canvas = document.createElement('canvas'),
-    ctx = canvas.getContext('2d'),
-    img = new Image;
+const blockhash = (src, bits, method, callback) => {
+  const canvas = createCanvas(200, 200);
+  const ctx = canvas.getContext('2d');
+  loadImage(src).then((img) => {
+    ctx.drawImage(img, 0, 0);
 
-    img.onload = function(){
-        canvas.height = img.height;
-        canvas.width = img.width;
-        ctx.drawImage(img, 0, 0);
+    const imgData = ctx.getImageData(0, 0, img.width, img.height);
+    const hash = blockhashData(imgData, bits, method);
 
-        var imgData = ctx.getImageData(0, 0, img.width, img.height);
-        var hash = blockhashData(imgData, 16, 2);
-
-        // destroy canvas element
-        canvas = null;
-
-        callback(null, hash);
-
-    };
-    img.src = src;
-
-    img.onerror = function(err) {
-        callback(err, null);
-    };
+    return callback(null, hash);
+  }).catch(callback);
 };
 
 module.exports = {
-  hammingDistance: hammingDistance,
-  blockhash: blockhash,
-  blockhashData: blockhashData
+  hammingDistance,
+  blockhash,
+  blockhashData,
 }
 
